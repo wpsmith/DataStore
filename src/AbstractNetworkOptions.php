@@ -51,13 +51,13 @@ if ( ! class_exists( __NAMESPACE__ . '\AbstractNetworkOptions' ) ) {
 		/**
 		 * Create new Network Options instance.
 		 *
-		 * @param string   $prefix The prefix automatically added to option names.
+		 * @param string   $id The id of the settings.
 		 * @param int|null $network_id Optional. The network ID or null for the current network. Default null.
 		 */
-		public function __construct( $network_id = null, $id = null ) {
+		public function __construct( $id, $network_id = null ) {
 			$this->id         = $id;
-			$this->cache  = Cache::get_instance();
-			$this->network_id = ! empty( $network_id ) ? absint( $network_id ) : \get_current_network_id();
+			$this->cache      = Cache::get_instance();
+			$this->network_id = ! empty( $network_id ) ? absint( $network_id ) : get_current_network_id();
 		}
 
 	}
