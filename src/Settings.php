@@ -66,15 +66,24 @@ if ( ! class_exists( __NAMESPACE__ . '\Settings' ) ) {
 		}
 
 		/**
-		 * Retrieves an option value.
+		 * Return option from the options table and cache result.
 		 *
-		 * @param string $option The option name (without the plugin-specific prefix).
-		 * @param mixed  $default Optional. Default value to return if the option does not exist. Default null.
-		 * @param bool   $raw Optional. Use the raw option name (i.e. don't call get_name). Default false.
+		 * Applies `wps_pre_get_option_$key` and `genesis_options` filters.
 		 *
-		 * @return mixed Value set for the option.
+		 * Values pulled from the database are cached on each request, so a second request for the same value won't cause a
+		 * second DB interaction.
+		 *
+		 * @param string $option Option name.
+		 * @param string $setting Optional. Settings field name. Eventually defaults to `wps-settings` if not
+		 *                          passed as an argument.
+		 * @param bool   $use_cache Optional. Whether to use the Genesis cache value or not. Default is true.
+		 *
+		 * @return mixed The value of the `$key` in the database, or the return from
+		 *               `wps_pre_get_option_{$key}` short circuit filter if not `null`.
 		 */
-		public function get( $option, $default = null, $raw = false ) {
+		public function get( $option, $setting = null, $use_cache = true ) {
+			$setting = $setting ?: $this->get_name();
+
 			// Allow child theme to short circuit this function.
 			$pre = apply_filters( "{$this->get_name()}_pre_get_option_{$option}", null, $this->get_name() );
 			if ( null !== $pre ) {
@@ -83,12 +92,12 @@ if ( ! class_exists( __NAMESPACE__ . '\Settings' ) ) {
 
 			// Bypass cache if viewing site in Customizer.
 			if ( is_customize_preview() ) {
-				$raw = true;
+				$use_cache = false;
 			}
 
 			// If we need to bypass the cache.
-			if ( $raw ) {
-				$options = \get_option( $this->get_name(), $default );
+			if ( ! $use_cache ) {
+				$options = \get_option( $setting );
 
 				if ( ! is_array( $options ) || ! array_key_exists( $option, $options ) ) {
 					return '';
@@ -102,58 +111,59 @@ if ( ! class_exists( __NAMESPACE__ . '\Settings' ) ) {
 			static $options_cache = [];
 
 			// Check options cache.
-			if ( isset( $options_cache[ $this->get_name() ][ $option ] ) ) {
+			if ( isset( $options_cache[ $setting ][ $option ] ) ) {
 				// Option has been cached.
-				return $options_cache[ $this->get_name() ][ $option ];
+				return $options_cache[ $setting ][ $option ];
 			}
 
 			// Check settings cache.
-			if ( isset( $settings_cache[ $this->get_name() ] ) ) {
+			if ( isset( $settings_cache[ $setting ] ) ) {
 				// Setting has been cached.
-				$options = apply_filters( "{$this->get_name()}_options", $settings_cache[ $this->get_name() ], $this->get_name() );
+				$options = apply_filters( "{$setting}_options", $settings_cache[ $setting ], $setting );
 			} else {
 				// Set value and cache setting.
-				$settings_cache[ $this->get_name() ] = apply_filters( "{$this->get_name()}_options", \get_option( $this->get_name() ), $this->get_name() );
-				$options                             = $settings_cache[ $this->get_name() ];
+				$settings_cache[ $setting ] = apply_filters( "{$setting}_options", \get_option( $setting ), $setting );
+				$options                    = $settings_cache[ $setting ];
 			}
 
 			// Check for non-existent option.
 			if ( ! is_array( $options ) || ! array_key_exists( $option, (array) $options ) ) {
 				// Cache non-existent option.
-				$options_cache[ $this->get_name() ][ $option ] = '';
+				$options_cache[ $setting ][ $option ] = '';
 			} else {
 				// Option has not previously been cached, so cache now.
-				$options_cache[ $this->get_name() ][ $option ] = is_array( $options[ $option ] ) ? $options[ $option ] : wp_kses_decode_entities( $options[ $option ] );
+				$options_cache[ $setting ][ $option ] = is_array( $options[ $option ] ) ? $options[ $option ] : wp_kses_decode_entities( $options[ $option ] );
 			}
 
-			return $options_cache[ $this->get_name() ][ $option ];
+			return $options_cache[ $setting ][ $option ];
 		}
 
 		/**
 		 * Sets or updates an option.
 		 *
-		 * @param mixed $value The value to store.
-		 * @param bool  $autoload Optional. Whether to load the option when WordPress
+		 * @param string|array $new     New settings. Can be a string, or an array.
+		 * @param string $setting Optional. Settings field name.
+		 * @param bool   $autoload Optional. Whether to load the option when WordPress
 		 *                         starts up. For existing options, $autoload can only
 		 *                         be updated using update_option() if $value is also
 		 *                         changed. Default true.
-		 * @param bool  $raw Deprecated. Do not use. Does nothing.
 		 *
 		 * @return bool
 		 */
-		public function set( $value, $autoload = true, $raw = false ) {
-			$old = parent::get( $this->get_name() );
+		public function set( $new, $setting = null, $autoload = true ) {
+			$setting = $setting ?: $this->get_name();
+			$old = get_option( $setting );
 
-			$value = wp_parse_args( $value, $old );
+			$settings = wp_parse_args( $new, $old );
 
 			// Allow settings to be deleted.
-			foreach ( $value as $key => $val ) {
-				if ( 'unset' === $val ) {
-					unset( $value[ $key ] );
+			foreach ( $settings as $key => $value ) {
+				if ( 'unset' === $value ) {
+					unset( $settings[ $key ] );
 				}
 			}
 
-			return update_option( $this->get_name(), $value, $autoload );
+			return update_option( $setting, $settings, $autoload );
 		}
 
 		/**
