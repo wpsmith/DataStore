@@ -57,18 +57,19 @@ if ( ! class_exists( __NAMESPACE__ . '\OptionsManager' ) ) {
 		/**
 		 * Returns the Manager to use.
 		 *
+		 * @param string $id Optional. The network ID or null for the current network. Default null.
 		 * @param int|null $network_id Optional. The network ID or null for the current network. Default null.
 		 *
 		 * @return NetworkSettings|Settings Data Store to use.
 		 */
-		public static function get_settings( $network_id = null ) {
+		public static function get_settings( $id, $network_id = null ) {
 			static $manager = null;
 
 			if ( $manager === null ) {
 				if ( is_multisite() ) {
-					$manager = new NetworkSettings( $network_id );
+					$manager = new NetworkSettings( $id, $network_id );
 				} else {
-					$manager = new Settings();
+					$manager = new Settings( $id );
 				}
 			}
 

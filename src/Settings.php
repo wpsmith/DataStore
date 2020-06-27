@@ -44,12 +44,11 @@ if ( ! class_exists( __NAMESPACE__ . '\Settings' ) ) {
 		/**
 		 * Settings constructor.
 		 *
-		 * @param string $prefix The prefix. Default '_'.
-		 * @param null   $id ID of the settings. Default null.
+		 * @param string $id ID of the settings.
 		 */
-		public function __construct( $id = null ) {
-			$this->id     = $id;
-			$this->cache  = Cache::get_instance();
+		public function __construct( $id ) {
+			$this->id    = $id;
+			$this->cache = Cache::get_instance();
 		}
 
 		/**
@@ -69,7 +68,7 @@ if ( ! class_exists( __NAMESPACE__ . '\Settings' ) ) {
 		 *               `wps_pre_get_option_{$key}` short circuit filter if not `null`.
 		 */
 		public function get( $option, $setting = null, $use_cache = true ) {
-			$setting = $setting ? $setting: $this->get_name();
+			$setting = $setting ? $setting : $this->get_name();
 
 			// Allow child theme to short circuit this function.
 			$pre = apply_filters( "{$setting}_pre_get_option_{$option}", null, $setting );
@@ -128,9 +127,9 @@ if ( ! class_exists( __NAMESPACE__ . '\Settings' ) ) {
 		/**
 		 * Sets or updates an option.
 		 *
-		 * @param string|array $new     New settings. Can be a string, or an array.
-		 * @param string $setting Optional. Settings field name.
-		 * @param bool   $autoload Optional. Whether to load the option when WordPress
+		 * @param string|array $new New settings. Can be a string, or an array.
+		 * @param string       $setting Optional. Settings field name.
+		 * @param bool         $autoload Optional. Whether to load the option when WordPress
 		 *                         starts up. For existing options, $autoload can only
 		 *                         be updated using update_option() if $value is also
 		 *                         changed. Default true.
@@ -139,7 +138,7 @@ if ( ! class_exists( __NAMESPACE__ . '\Settings' ) ) {
 		 */
 		public function set( $new, $setting = null, $autoload = true ) {
 			$setting = $setting ?: $this->get_name();
-			$old = get_option( $setting );
+			$old     = get_option( $setting );
 
 			$settings = wp_parse_args( $new, $old );
 
