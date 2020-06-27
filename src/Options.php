@@ -35,15 +35,6 @@ if ( ! class_exists( __NAMESPACE__ . '\Options' ) ) {
 	class Options extends AbstractOptions {
 
 		/**
-		 * Options constructor.
-		 *
-		 * @param string $prefix The prefix automatically added to option names.
-		 */
-		public function __construct( $prefix = '_' ) {
-			$this->prefix = $prefix;
-		}
-
-		/**
 		 * Retrieves an option value.
 		 *
 		 * @param string $option The option name (without the plugin-specific prefix).
@@ -92,7 +83,11 @@ if ( ! class_exists( __NAMESPACE__ . '\Options' ) ) {
 		 *
 		 * @return bool True, if option is successfully deleted. False on failure.
 		 */
-		public function delete( $option, $raw = false ) {
+		public function delete( $option = null, $raw = false ) {
+			if ( null === $option ) {
+				return false;
+			}
+
 			return \delete_option( $raw ? $option : $this->get_name( $option ) );
 		}
 

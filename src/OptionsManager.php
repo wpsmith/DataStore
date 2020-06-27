@@ -36,19 +36,39 @@ if ( ! class_exists( __NAMESPACE__ . '\OptionsManager' ) ) {
 		/**
 		 * Returns the Manager to use.
 		 *
-		 * @param string   $prefix Optional. The prefix automatically added to option names.
 		 * @param int|null $network_id Optional. The network ID or null for the current network. Default null.
 		 *
 		 * @return NetworkOptions|Options Data Store to use.
 		 */
-		public static function get( $prefix = '_', $network_id = null ) {
+		public static function get( $network_id = null ) {
 			static $manager = null;
 
 			if ( $manager === null ) {
 				if ( is_multisite() ) {
-					$manager = new NetworkOptions( $prefix, $network_id );
+					$manager = new NetworkOptions( $network_id );
 				} else {
-					$manager = new Options( $prefix );
+					$manager = new Options();
+				}
+			}
+
+			return $manager;
+		}
+
+		/**
+		 * Returns the Manager to use.
+		 *
+		 * @param int|null $network_id Optional. The network ID or null for the current network. Default null.
+		 *
+		 * @return NetworkSettings|Settings Data Store to use.
+		 */
+		public static function get_settings( $network_id = null ) {
+			static $manager = null;
+
+			if ( $manager === null ) {
+				if ( is_multisite() ) {
+					$manager = new NetworkSettings( $network_id );
+				} else {
+					$manager = new Settings();
 				}
 			}
 

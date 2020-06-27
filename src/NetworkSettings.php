@@ -1,6 +1,6 @@
 <?php
 /**
- * Settings Class
+ * NetworkSettings Class
  *
  * The option-specific settings functionality for WordPress.
  *
@@ -27,30 +27,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( ! class_exists( __NAMESPACE__ . '\Settings' ) ) {
+if ( ! class_exists( __NAMESPACE__ . '\NetworkSettings' ) ) {
 	/**
-	 * Class Settings
+	 * Class NetworkSettings
 	 * @package WPS\WP\DataStore
 	 */
-	class Settings extends AbstractOptions {
-
-		/**
-		 * Settings cache.
-		 *
-		 * @var Cache
-		 */
-		protected $cache;
-
-		/**
-		 * Settings constructor.
-		 *
-		 * @param string $prefix The prefix. Default '_'.
-		 * @param null   $id ID of the settings. Default null.
-		 */
-		public function __construct( $id = null ) {
-			$this->id     = $id;
-			$this->cache  = Cache::get_instance();
-		}
+	class NetworkSettings extends AbstractNetworkOptions {
 
 		/**
 		 * Return option from the options table and cache result.
@@ -69,7 +51,7 @@ if ( ! class_exists( __NAMESPACE__ . '\Settings' ) ) {
 		 *               `wps_pre_get_option_{$key}` short circuit filter if not `null`.
 		 */
 		public function get( $option, $setting = null, $use_cache = true ) {
-			$setting = $setting ? $setting: $this->get_name();
+			$setting = $setting ? $setting : $this->get_name();
 
 			// Allow child theme to short circuit this function.
 			$pre = apply_filters( "{$setting}_pre_get_option_{$option}", null, $setting );
@@ -84,7 +66,7 @@ if ( ! class_exists( __NAMESPACE__ . '\Settings' ) ) {
 
 			// If we need to bypass the cache.
 			if ( ! $use_cache ) {
-				$options = \get_option( $setting );
+				$options = get_network_option( $this->network_id, $setting );
 
 				if ( ! is_array( $options ) || ! array_key_exists( $option, $options ) ) {
 					return '';
@@ -109,7 +91,7 @@ if ( ! class_exists( __NAMESPACE__ . '\Settings' ) ) {
 				$options = apply_filters( "{$setting}_options", $settings_cache[ $setting ], $setting );
 			} else {
 				// Set value and cache setting.
-				$settings_cache[ $setting ] = apply_filters( "{$setting}_options", \get_option( $setting ), $setting );
+				$settings_cache[ $setting ] = apply_filters( "{$setting}_options", get_network_option( $this->network_id, $setting ), $setting );
 				$options                    = $settings_cache[ $setting ];
 			}
 
@@ -128,18 +110,15 @@ if ( ! class_exists( __NAMESPACE__ . '\Settings' ) ) {
 		/**
 		 * Sets or updates an option.
 		 *
-		 * @param string|array $new     New settings. Can be a string, or an array.
-		 * @param string $setting Optional. Settings field name.
-		 * @param bool   $autoload Optional. Whether to load the option when WordPress
-		 *                         starts up. For existing options, $autoload can only
-		 *                         be updated using update_option() if $value is also
-		 *                         changed. Default true.
+		 * @param string|array $new New settings. Can be a string, or an array.
+		 * @param string       $setting Optional. Settings field name.
+		 * @param bool         $autoload Optional. Not usable with network options.
 		 *
 		 * @return bool
 		 */
 		public function set( $new, $setting = null, $autoload = true ) {
 			$setting = $setting ?: $this->get_name();
-			$old = get_option( $setting );
+			$old     = get_option( $setting );
 
 			$settings = wp_parse_args( $new, $old );
 
@@ -150,22 +129,28 @@ if ( ! class_exists( __NAMESPACE__ . '\Settings' ) ) {
 				}
 			}
 
-			return update_option( $setting, $settings, $autoload );
+			return update_network_option( $this->network_id, $setting, $settings );
 		}
 
 		/**
 		 * Deletes an entry from the cache.
 		 *
-		 * @param string $key The cache key root.
+		 * @param string $key The setting key.
 		 *
 		 * @return bool True on successful removal, false on failure.
 		 */
 		public function delete( $key = null ) {
 			if ( null === $key ) {
-				return false;
+				return delete_network_option( $this->network_id, $this->get_name() );
 			}
 
-			return \delete_option( $this->get_name() );
+			$settings = $this->get( $key );
+			if ( isset( $settings[ $key ] ) ) {
+				unset( $settings[ $key ] );
+				return $this->set( $settings );
+			}
+
+			return false;
 		}
 	}
 }

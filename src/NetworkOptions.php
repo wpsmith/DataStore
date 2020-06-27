@@ -32,25 +32,7 @@ if ( ! class_exists( __NAMESPACE__ . '\NetworkOptions' ) ) {
 	 * Class NetworkOptions
 	 * @package WPS\WP\DataStore
 	 */
-	class NetworkOptions extends AbstractOptions {
-
-		/**
-		 * The network ID.
-		 *
-		 * @var int
-		 */
-		protected $id;
-
-		/**
-		 * Create new Network Options instance.
-		 *
-		 * @param string   $prefix The prefix automatically added to option names.
-		 * @param int|null $network_id Optional. The network ID or null for the current network. Default null.
-		 */
-		public function __construct( $prefix = '_', $network_id = null ) {
-			$this->prefix = $prefix;
-			$this->id     = ! empty( $network_id ) ? absint( $network_id ) : \get_current_network_id();
-		}
+	class NetworkOptions extends AbstractNetworkOptions {
 
 		/**
 		 * Retrieves an option value.
@@ -62,7 +44,7 @@ if ( ! class_exists( __NAMESPACE__ . '\NetworkOptions' ) ) {
 		 * @return mixed Value set for the option.
 		 */
 		public function get( $option, $default = null, $raw = false ) {
-			$value = \get_network_option( $this->id, $raw ? $option : $this->get_name( $option ), $default );
+			$value = get_network_option( $this->id, $raw ? $option : $this->get_name( $option ), $default );
 
 			if ( is_array( $default ) && '' === $value ) {
 				$value = [];
@@ -83,7 +65,7 @@ if ( ! class_exists( __NAMESPACE__ . '\NetworkOptions' ) ) {
 		 * @return bool False if value was not updated and true if value was updated.
 		 */
 		public function set( $option, $value, $autoload = true, $raw = false ) {
-			return \update_network_option( $this->id, $raw ? $option : $this->get_name( $option ), $value );
+			return update_network_option( $this->id, $raw ? $option : $this->get_name( $option ), $value );
 		}
 
 		/**
@@ -94,8 +76,12 @@ if ( ! class_exists( __NAMESPACE__ . '\NetworkOptions' ) ) {
 		 *
 		 * @return bool True, if option is successfully deleted. False on failure.
 		 */
-		public function delete( $option, $raw = false ) {
-			return \delete_network_option( $this->id, $raw ? $option : $this->get_name( $option ) );
+		public function delete( $option = null, $raw = false ) {
+			if ( null === $option ) {
+				return false;
+			}
+
+			return delete_network_option( $this->id, $raw ? $option : $this->get_name( $option ) );
 		}
 	}
 }

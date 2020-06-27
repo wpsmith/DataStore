@@ -103,7 +103,11 @@ if ( ! class_exists( __NAMESPACE__ . '\Cache' ) ) {
 		 *
 		 * @return bool True on successful removal, false on failure.
 		 */
-		public function delete( $key ) {
+		public function delete( $key = null ) {
+			if ( null === $key ) {
+				return false;
+			}
+
 			return \wp_cache_delete( $this->get_key( $key ), $this->group );
 		}
 	}

@@ -57,7 +57,7 @@ if ( ! class_exists( __NAMESPACE__ . '\AbstractCache' ) ) {
 		 *
 		 * @param string $prefix The prefix automatically added to cache keys.
 		 */
-		protected function __construct( $prefix ) {
+		protected function __construct( $prefix = '' ) {
 			$this->prefix = $prefix;
 
 			if ( empty( $this->incrementor ) ) {

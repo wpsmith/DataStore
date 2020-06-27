@@ -38,7 +38,7 @@ if ( ! interface_exists( __NAMESPACE__ . '\DataStore' ) ) {
 		/**
 		 * Retrieves a cached value.
 		 *
-		 * @param string $key The cache key root.
+		 * @param string $key The key root.
 		 *
 		 * @return mixed
 		 */
@@ -47,7 +47,7 @@ if ( ! interface_exists( __NAMESPACE__ . '\DataStore' ) ) {
 		/**
 		 * Sets an entry in the cache and stores the key.
 		 *
-		 * @param mixed $key The cache key root.
+		 * @param mixed $key The key root.
 		 * @param mixed $value The value to store.
 		 * @param int   $duration Optional. The duration in seconds. Default 0 (no expiration).
 		 *
@@ -58,11 +58,11 @@ if ( ! interface_exists( __NAMESPACE__ . '\DataStore' ) ) {
 		/**
 		 * Deletes an entry from the cache.
 		 *
-		 * @param string $key The cache key root.
+		 * @param string $key Optional. The key root.
 		 *
 		 * @return bool True on successful removal, false on failure.
 		 */
-		public function delete( $key );
+		public function delete( $key = null );
 
 	}
 }
