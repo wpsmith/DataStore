@@ -53,6 +53,11 @@ if ( ! class_exists( __NAMESPACE__ . '\Options' ) ) {
 		 * @return mixed Value set for the option.
 		 */
 		public function get( $option, $default = null, $raw = false ) {
+			// Bypass cache if viewing site in Customizer.
+			if ( is_customize_preview() ) {
+				$raw = false;
+			}
+
 			$value = \get_option( $raw ? $option : $this->get_name( $option ), $default );
 
 			if ( is_array( $default ) && '' === $value ) {
